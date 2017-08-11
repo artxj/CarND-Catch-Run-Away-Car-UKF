@@ -6,9 +6,16 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#import "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+
+// uncomment to get debug info
+// #define UKF_DEBUG
+
+// uncomment to get NIS values in console
+// #define UKF_SHOW_NIS
 
 class UKF {
 public:
@@ -24,6 +31,9 @@ public:
 
   ///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
   VectorXd x_;
+
+  ///* predicted x for the target vehicle
+  VectorXd x_pred_;
 
   ///* state covariance matrix
   MatrixXd P_;
@@ -67,6 +77,7 @@ public:
   ///* Sigma point spreading parameter
   double lambda_;
 
+  double actual_distance_;
 
   /**
    * Constructor
@@ -83,6 +94,12 @@ public:
    * @param meas_package The latest measurement data of either radar or laser
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
+
+  /**
+  * Predicts a position of target vehicle and store it in x_pred_
+  * @param distance The latest distance between hunter and predicted target
+  */
+  void PredictPosition(double distance);
 
   /**
    * Prediction Predicts sigma points, the state, and the state covariance
@@ -102,6 +119,32 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+private:
+  // tools
+  Tools tools;
+
+  // augmented covariance matrix
+  MatrixXd Q_;
+
+  // matrix of std deviations for laser measurements
+  MatrixXd R_laser_;
+
+  // matrix of std deviations for radar measurements
+  MatrixXd R_radar_;
+
+  // identity matrix
+  MatrixXd I_;
+
+  // measurement matrix for laser
+  MatrixXd H_;
+
+  // Transposed H matrix
+  MatrixXd Ht_;
+
+  // NIS values
+  double NIS_laser_;
+  double NIS_radar_;
 };
 
 #endif /* UKF_H */
